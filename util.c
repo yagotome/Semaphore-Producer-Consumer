@@ -87,3 +87,54 @@ void multiplicarMatrizes(int** a, int** b, int** r, int n)
 		}
 	}
 }
+
+void determinante(int **c, int *det, int n)
+{
+	int A[n][n], i, j, k, factor, temp, count;
+	for(i=0; i<n; i++)
+	{
+		for(j=0; j<n; j++)
+		{
+			A[i][j] = c[i][j];
+		}
+	}
+
+	for(i=0; i < n-1; i++)
+    {
+        if(A[i][i] == 0)
+        {
+            for(k=i; k < n; k++)
+            {
+                if(A[k][i] != 0)
+                {
+                    for(j=0; j < n; j++)
+                    {
+                        temp = A[i][j];
+                        A[i][j] = A[k][j];
+                        A[k][j] = temp;
+                    }
+                    k = n;
+                }
+            }
+            count++;
+        }
+
+        if(A[i][i] != 0)
+        {
+            for(k=i+1; k < n; k++)
+            {
+                factor = -1.0 * A[k][i] / A[i][i];
+                for(j=i; j < n; j++)
+                {
+                    A[k][j] = A[k][j] + (factor * A[i][j]);
+                }
+            }
+        }
+	}
+
+	for(i=0; i < n; i++)
+	{
+		*det *= A[i][i];
+		if(count % 2 == 1) *det *= -1;
+	}
+}
