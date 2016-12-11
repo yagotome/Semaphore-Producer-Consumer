@@ -7,4 +7,4 @@ void lerMatriz(FILE*, int** matriz, int n);
 void desalocar(int*** matriz, int n);
 void alocarMatriz (int*** mat, int n);
 void multiplicarMatrizes(int** a, int** b, int** r, int n);
-void determinante(int **c, int n);
+void determinante(int **c, int *det, int n);
