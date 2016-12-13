@@ -202,7 +202,8 @@ void *EA(void *arg)
 		free(shared[3].buffer[shared[3].out].c);
 
 		sem_wait(mutex);
-		sai++;  // errado. consertar.
+		sai++;
+		if(ent == saida) exit(0);
 		sem_post(mutex);
 
 		shared[3].out = (shared[3].out+1) % BUFF_SIZE;
