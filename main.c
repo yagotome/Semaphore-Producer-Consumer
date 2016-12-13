@@ -57,7 +57,7 @@ void *LC(void *arg)
 
 void *LA(void *arg)
 {
-	while(true)
+	while(1)
 	{
 		int i, j;
 
@@ -82,14 +82,14 @@ void *LA(void *arg)
 		{
 			for(j=0; j<shared[0].buffer[shared[0].out].size; j++)
 			{
-				fscanf(arq, "%d", &(shared[0].buffer[shared[0].out].a[i][j]));
+				fscanf(arq, "%lf", &(shared[0].buffer[shared[0].out].a[i][j]));
 			}
 		}
 		for(i=0; i<shared[0].buffer[shared[0].out].size; i++)
 		{
 			for(j=0; j<shared[0].buffer[shared[0].out].size; j++)
 			{
-				fscanf(arq, "%d", &(shared[0].buffer[shared[0].out].b[i][j]));
+				fscanf(arq, "%lf", &(shared[0].buffer[shared[0].out].b[i][j]));
 			}
 		}
 
@@ -109,7 +109,7 @@ void *LA(void *arg)
 
 void *MM(void *arg)
 {
-	while(true)
+	while(1)
 	{
 		sem_wait(&shared[1].mutex);
 		sem_wait(&shared[1].full);
@@ -132,7 +132,7 @@ void *MM(void *arg)
 
 void *DM(void *arg)
 {
-	while(true)
+	while(1)
 	{
 		sem_wait(&shared[2].mutex);
 		sem_wait(&shared[2].full);
@@ -155,7 +155,7 @@ void *DM(void *arg)
 
 void *EA(void *arg)
 {
-	while(true)
+	while(1)
 	{
 		sem_wait(&shared[3].mutex);
 		sem_wait(&shared[3].full);
@@ -167,7 +167,7 @@ void *EA(void *arg)
 		{
 			for(j=0; j<shared[3].buffer[shared[3].out].size; j++)
 			{
-				fprintf(arq, "%d ", shared[3].buffer[shared[3].out].a[i][j]);
+				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].a[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
@@ -176,7 +176,7 @@ void *EA(void *arg)
 		{
 			for(j=0; j<shared[3].buffer[shared[3].out].size; j++)
 			{
-				fprintf(arq, "%d ", shared[3].buffer[shared[3].out].b[i][j]);
+				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].b[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
@@ -185,7 +185,7 @@ void *EA(void *arg)
 		{
 			for(j=0; j<shared[3].buffer[shared[3].out].size; j++)
 			{
-				fprintf(arq, "%d ", shared[3].buffer[shared[3].out].c[i][j]);
+				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].c[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
@@ -201,10 +201,10 @@ void *EA(void *arg)
 		free(shared[3].buffer[shared[3].out].b);
 		free(shared[3].buffer[shared[3].out].c);
 
-		sem_wait(mutex);
+		sem_wait(&mutex);
 		sai++;
-		if(ent == saida) exit(0);
-		sem_post(mutex);
+		if(ent == sai) exit(0);
+		sem_post(&mutex);
 
 		shared[3].out = (shared[3].out+1) % BUFF_SIZE;
 
@@ -217,7 +217,7 @@ int main()
 {
     pthread_t idLC, idLA, idMM, idDM, idEA;
     int i;
-    int sLC[nLC], sLA[nLA], sEA[nMM], sLA[nDM], sEA[nEA];
+    int sLC[nLC], sLA[nLA], sMM[nMM], sDM[nDM], sEA[nEA];
 
     for(i=0; i<nSHARED; i++)
     {
@@ -238,7 +238,7 @@ int main()
 		pthread_create(&idLA, NULL, LA, &sLA[i]);
     }
 
-	for(i=0; index < nMM; index++)
+	for(i=0; i<nMM; i++)
 	{
 		sMM[i]=i;
 		pthread_create(&idMM, NULL, EA, &sMM[i]);
@@ -250,6 +250,7 @@ int main()
 		pthread_create(&idDM, NULL, EA, &sDM[i]);
 	}
 
+	sem_init(&mutex, 0, 1);
     for(i=0; i<nEA; i++)
     {  
 		sEA[i]=i;
