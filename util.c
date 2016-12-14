@@ -1,3 +1,4 @@
+#include<stdlib.h>
 void alocar_matriz(double*** matriz, int n)
 {
     *matriz = (double**) malloc(n * sizeof(double*));
