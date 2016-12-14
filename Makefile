@@ -3,4 +3,4 @@ default: build
 build:
 	gcc main.c util.c -o bin/${PROG} -pthread
 clean:
-	bin/*
+	rm bin/*
