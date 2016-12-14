@@ -1,3 +1,12 @@
+void alocar_matriz(double*** matriz, int n)
+{
+    *matriz = (double**) malloc(n * sizeof(double*));
+    for(i = 0; i < n; i++)
+    {
+        (*matriz)[i] = (double*) malloc(n * sizeof(double));
+    }
+}
+
 void multiplicar(double **a, double **b, double ***r, int n)
 {
 	int i,j,k;	
