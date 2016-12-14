@@ -37,16 +37,16 @@ sem_t mutex;
 
 void *LC(void *arg)
 {
-	char nome[15];
+	S temp;
 	FILE *arq = fopen ("in/entrada.in", "r");
-	while(fscanf(arq, "%s\n", nome) == 1)
+	while(fscanf(arq, "%s\n", temp.nome) == 1)
 	{		
 		sem_wait(&shared[0].empty);
         sem_wait(&shared[0].mutex);
 		
-		strcpy(shared[0].buffer[shared[0].in].nome, nome); 
-		ent++;
+		shared[0].buffer[shared[0].in] = temp; 
 		shared[0].in = (shared[0].in+1) % BUFF_SIZE;
+		ent++;
 
 		sem_post(&shared[0].mutex);
         sem_post(&shared[0].full);
@@ -59,43 +59,45 @@ void *LA(void *arg)
 {
 	while(1)
 	{
-		char nome[15];
 		sem_wait(&shared[0].full);
         sem_wait(&shared[0].mutex);
 
-		strcpy(nome, shared[0].buffer[shared[0].out].nome);
+		S temp = shared[0].buffer[shared[0].out];
 		shared[0].out = (shared[0].out+1) % BUFF_SIZE;
 
 		sem_post(&shared[0].mutex);
         sem_post(&shared[0].empty);
 
-		sem_wait(&shared[1].empty);
-		sem_wait(&shared[1].mutex);
-
-		FILE *arq = fopen(strcat(nome, ".txt"), "r");		
-		fscanf(arq, "%d", &(shared[1].buffer[shared[1].in].size));		
+		// lendo arquivo e botando conteúdo em temp
+		FILE *arq = fopen(strcat(temp.nome, ".txt"), "r");		
+		fscanf(arq, "%d", &(temp.size));		
 		
-		int n = shared[1].buffer[shared[1].in].size;
+		int n = temp.size;
 
-		alocar_matriz(&shared[1].buffer[shared[1].in].a, n);
-		alocar_matriz(&shared[1].buffer[shared[1].in].b, n);
+		alocar_matriz(&temp.a, n);
+		alocar_matriz(&temp.b, n);
 
 		int i, j;
 		for(i = 0; i < n; i++)
 		{
 			for(j = 0; j < n; j++)
 			{
-				fscanf(arq, "%lf", &(shared[1].buffer[shared[1].in].a[i][j]));
+				fscanf(arq, "%lf", &(temp.a[i][j]));
 			}
 		}
 		for(i = 0; i < n; i++)
 		{
 			for(j = 0; j < n; j++)
 			{
-				fscanf(arq, "%lf", &(shared[1].buffer[shared[1].in].b[i][j]));
+				fscanf(arq, "%lf", &(temp.b[i][j]));
 			}
 		}
+		// fim da leitura do arquivo, temp está preenchido
 
+		sem_wait(&shared[1].empty);
+		sem_wait(&shared[1].mutex);
+
+		shared[1].buffer[shared[1].in] = temp;	
 		shared[1].in = (shared[1].in+1) % BUFF_SIZE;
 
 		sem_post(&shared[1].mutex);
@@ -107,23 +109,22 @@ void *MM(void *arg)
 {
 	while(1)
 	{
-		double** matriz_produto;
-
 		sem_wait(&shared[1].full);
 		sem_wait(&shared[1].mutex);
 		
-		int n = shared[1].buffer[shared[1].out].size;
-		alocar_matriz(&matriz_produto, n);
-		multiplicar(shared[1].buffer[shared[1].out].a, shared[1].buffer[shared[1].out].b, &matriz_produto, shared[1].buffer[shared[1].out].size);
+		S temp = shared[1].buffer[shared[1].out];
 		shared[1].out = (shared[1].out+1) % BUFF_SIZE;
 		
 		sem_post(&shared[1].mutex);
         sem_post(&shared[1].empty);
 
+		alocar_matriz(&temp.c, temp.size);
+		multiplicar(temp.a, temp.b, &temp.c, temp.size);
+
 		sem_wait(&shared[2].empty);
 		sem_wait(&shared[2].mutex);
 
-		shared[2].buffer[shared[2].in].c = matriz_produto;
+		shared[2].buffer[shared[2].in] = temp;		
 		shared[2].in = (shared[2].in+1) % BUFF_SIZE;
 
 		sem_post(&shared[2].mutex);
@@ -135,21 +136,30 @@ void *DM(void *arg)
 {
 	while(1)
 	{
-		double det;
-
 		sem_wait(&shared[2].full);
 		sem_wait(&shared[2].mutex);
 
-		determinante(shared[2].buffer[shared[2].out].c, &(det), shared[2].buffer[shared[2].out].size);
+		S temp = shared[2].buffer[shared[2].out];
 		shared[2].out = (shared[2].out+1) % BUFF_SIZE;
 
 		sem_post(&shared[2].mutex);
         sem_post(&shared[2].empty);
 
+		double*** r = &temp.c;
+		int i,j, n = temp.size;
+		printf("n = %d\n", n);
+		for (i=0; i < n; i++)
+			for (j=0; j < temp.size; j++)
+				printf("r[%d][%d] = %lf\n", i, j, (*r)[i][j]);
+
+		determinante(temp.c, &(temp.det), temp.size);
+		
+		printf("temp.det = %lf\n", temp.det);
+
 		sem_wait(&shared[3].empty);
 		sem_wait(&shared[3].mutex);
 		
-		shared[3].buffer[shared[3].in].det = det;
+		shared[3].buffer[shared[3].in] = temp;
 		shared[3].in = (shared[3].in+1) % BUFF_SIZE;
 
 		sem_post(&shared[3].mutex);

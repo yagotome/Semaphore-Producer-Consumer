@@ -15,7 +15,7 @@ void multiplicar(double **a, double **b, double ***r, int n)
 	for (i=0; i < n; i++)
 	{		
 		for (j=0; j < n; j++)
-		{
+		{            
             (*r)[i][j] = 0;
 			for (k=0; k < n; k++)
 			{
