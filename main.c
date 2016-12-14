@@ -69,7 +69,10 @@ void *LA(void *arg)
         sem_post(&shared[0].empty);
 
 		// lendo arquivo e botando conteúdo em temp
-		FILE *arq = fopen(strcat(temp.nome, ".txt"), "r");		
+		char in_dir[50] = "in/";
+		strcat(in_dir, temp.nome);
+		strcat(in_dir, ".in");
+		FILE *arq = fopen(in_dir, "r");		
 		fscanf(arq, "%d", &(temp.size));		
 		
 		int n = temp.size;
@@ -145,16 +148,16 @@ void *DM(void *arg)
 		sem_post(&shared[2].mutex);
         sem_post(&shared[2].empty);
 
-		double*** r = &temp.c;
-		int i,j, n = temp.size;
-		printf("n = %d\n", n);
-		for (i=0; i < n; i++)
-			for (j=0; j < temp.size; j++)
-				printf("r[%d][%d] = %lf\n", i, j, (*r)[i][j]);
+		// double*** r = &temp.c;
+		// int i,j, n = temp.size;
+		// printf("n = %d\n", n);
+		// for (i=0; i < n; i++)
+		// 	for (j=0; j < temp.size; j++)
+		// 		printf("r[%d][%d] = %lf\n", i, j, (*r)[i][j]);
 
 		determinante(temp.c, &(temp.det), temp.size);
 		
-		printf("temp.det = %lf\n", temp.det);
+		// printf("temp.det = %lf\n", temp.det);
 
 		sem_wait(&shared[3].empty);
 		sem_wait(&shared[3].mutex);
@@ -173,57 +176,61 @@ void *EA(void *arg)
 	{
 		sem_wait(&shared[3].full);
 		sem_wait(&shared[3].mutex);
+		
+		S temp = shared[3].buffer[shared[3].out];
+		shared[3].out = (shared[3].out+1) % BUFF_SIZE;
 
-		FILE *arq = fopen(strcat(shared[3].buffer[shared[3].out].nome, ".out"), "w");
-		fprintf(arq, "================================\n%s.txt\n--------------------------------\nA\n", shared[3].buffer[shared[3].out].nome);
+		sem_post(&shared[3].mutex);
+        sem_post(&shared[3].empty);		
+
+		char out_dir[50] = "out/";
+		strcat(out_dir, temp.nome);
+		strcat(out_dir, ".out");
+		FILE *arq = fopen(out_dir, "w");
+		fprintf(arq, "================================\n%s.txt\n--------------------------------\nA\n", temp.nome);
 		int i, j;
-		for(i = 0; i<shared[3].buffer[shared[3].out].size; i++)
+		for(i = 0; i<temp.size; i++)
 		{
-			for(j = 0; j<shared[3].buffer[shared[3].out].size; j++)
+			for(j = 0; j<temp.size; j++)
 			{
-				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].a[i][j]);
+				fprintf(arq, "%lf ", temp.a[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
 		fprintf(arq, "B\n");
-		for(i = 0; i<shared[3].buffer[shared[3].out].size; i++)
+		for(i = 0; i<temp.size; i++)
 		{
-			for(j = 0; j<shared[3].buffer[shared[3].out].size; j++)
+			for(j = 0; j<temp.size; j++)
 			{
-				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].b[i][j]);
+				fprintf(arq, "%lf ", temp.b[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
 		fprintf(arq, "C\n");
-		for(i = 0; i<shared[3].buffer[shared[3].out].size; i++)
+		for(i = 0; i<temp.size; i++)
 		{
-			for(j = 0; j<shared[3].buffer[shared[3].out].size; j++)
+			for(j = 0; j<temp.size; j++)
 			{
-				fprintf(arq, "%lf ", shared[3].buffer[shared[3].out].c[i][j]);
+				fprintf(arq, "%lf ", temp.c[i][j]);
 			}
 			fprintf(arq, "\n");
 		}
 		fprintf(arq, "================================");
 
-		for(i=shared[3].buffer[shared[3].out].size - 1; i >= 0; i--)
+		for(i=temp.size - 1; i >= 0; i--)
 		{
-			free(shared[3].buffer[shared[3].out].a[i]);
-			free(shared[3].buffer[shared[3].out].b[i]);
-			free(shared[3].buffer[shared[3].out].c[i]);
+			free(temp.a[i]);
+			free(temp.b[i]);
+			free(temp.c[i]);
 		}
-		free(shared[3].buffer[shared[3].out].a);
-		free(shared[3].buffer[shared[3].out].b);
-		free(shared[3].buffer[shared[3].out].c);
+		free(temp.a);
+		free(temp.b);
+		free(temp.c);
 
 		sem_wait(&mutex);
 		sai++;
 		if(ent == sai) exit(0);
 		sem_post(&mutex);
-
-		shared[3].out = (shared[3].out+1) % BUFF_SIZE;
-
-		sem_post(&shared[3].mutex);
-        sem_post(&shared[3].empty);
 	}
 }
 
