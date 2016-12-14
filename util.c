@@ -2,6 +2,7 @@
 void alocar_matriz(double*** matriz, int n)
 {
     *matriz = (double**) malloc(n * sizeof(double*));
+    int i;
     for(i = 0; i < n; i++)
     {
         (*matriz)[i] = (double*) malloc(n * sizeof(double));
