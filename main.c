@@ -40,10 +40,10 @@ void *LC(void *arg)
 	char nome[15];
 	FILE *arq = fopen ("in/entrada.in", "r");
 	while(fscanf(arq, "%s\n", nome) == 1)
-	{
+	{		
 		sem_wait(&shared[0].empty);
         sem_wait(&shared[0].mutex);
-
+		
 		strcpy(shared[0].buffer[shared[0].in].nome, nome); 
 		ent++;
 		shared[0].in = (shared[0].in+1) % BUFF_SIZE;
@@ -63,7 +63,7 @@ void *LA(void *arg)
 		sem_wait(&shared[0].full);
         sem_wait(&shared[0].mutex);
 
-		strcpy(shared[0].buffer[shared[0].out].nome, nome);
+		strcpy(nome, shared[0].buffer[shared[0].out].nome);
 		shared[0].out = (shared[0].out+1) % BUFF_SIZE;
 
 		sem_post(&shared[0].mutex);
