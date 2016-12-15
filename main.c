@@ -32,7 +32,7 @@ typedef struct {
 } sbuf_t;
 
 sbuf_t shared[nSHARED];
-int ent = 0, sai = 0;
+int ent = 0, sai = 0, terminouLeitura=0;
 sem_t mutex;
 
 void *LC(void *arg)
@@ -50,7 +50,10 @@ void *LC(void *arg)
 
 		sem_post(&shared[0].mutex);
         sem_post(&shared[0].full);
+		
 	}
+
+	terminouLeitura = 1;
 
 	return NULL;
 }
@@ -229,7 +232,7 @@ void *EA(void *arg)
 
 		sem_wait(&mutex);
 		sai++;
-		if(ent == sai) exit(0);
+		if(ent == sai && terminouLeitura) exit(0);
 		sem_post(&mutex);
 	}
 }
