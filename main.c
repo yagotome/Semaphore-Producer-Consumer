@@ -53,6 +53,8 @@ void *LC(void *arg)
 		
 	}
 
+	sleep(2);
+
 	terminouLeitura = 1;
 
 	return NULL;
@@ -125,7 +127,7 @@ void *MM(void *arg)
         sem_post(&shared[1].empty);
 
 		alocar_matriz(&temp.c, temp.size);
-		multiplicar(temp.a, temp.b, &temp.c, temp.size);
+		multiplicar(temp.a, temp.b, temp.c, temp.size);
 
 		sem_wait(&shared[2].empty);
 		sem_wait(&shared[2].mutex);
@@ -200,7 +202,7 @@ void *EA(void *arg)
 			}
 			fprintf(arq, "\n");
 		}
-		fprintf(arq, "B\n");
+		fprintf(arq, "--------------------------------\nB\n");
 		for(i = 0; i<temp.size; i++)
 		{
 			for(j = 0; j<temp.size; j++)
@@ -209,7 +211,7 @@ void *EA(void *arg)
 			}
 			fprintf(arq, "\n");
 		}
-		fprintf(arq, "C\n");
+		fprintf(arq, "--------------------------------\nC\n");
 		for(i = 0; i<temp.size; i++)
 		{
 			for(j = 0; j<temp.size; j++)
@@ -218,7 +220,7 @@ void *EA(void *arg)
 			}
 			fprintf(arq, "\n");
 		}
-		fprintf(arq, "================================");
+		fprintf(arq, "--------------------------------\n%lf\n================================", temp.det);
 
 		for(i=temp.size - 1; i >= 0; i--)
 		{
@@ -232,7 +234,8 @@ void *EA(void *arg)
 
 		sem_wait(&mutex);
 		sai++;
-		if(ent == sai && terminouLeitura) exit(0);
+		if(ent == sai && terminouLeitura)
+			exit(0);
 		sem_post(&mutex);
 	}
 }
@@ -281,7 +284,5 @@ int main()
 		pthread_create(&idEA, NULL, EA, &sEA[i]);
     }
 
-    pthread_exit(NULL);
-	
-    return 0;
+	pthread_exit(NULL);
 }
