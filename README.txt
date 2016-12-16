@@ -1,4 +1,4 @@
-Para executar, abra o terminal na pasta Semaphore-Producer-Consumer e então execute os seguints comandos:
+Para executar, abra o terminal na pasta raiz e então execute os seguints comandos:
 mkdir bin
 make
 ./bin/matrix_producer_consumer
