@@ -1,3 +1,7 @@
+/* Autores: 
+Lucas Alves de Sousa
+Yago Gomes Tomé de Sousa */
+
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,13 +9,13 @@
 #include </usr/include/semaphore.h>
 #include "util.h"
 
-#define BUFF_SIZE   5       /* total number of BUFF_SIZE */
-#define nLC         1		/* total number of LCs */
-#define nLA         3		/* total number of LAs */
-#define nMM         4		/* total number of MMs */
-#define nDM         5		/* total number of DMs */
-#define nEA         3		/* total number of EAs */
-#define nSHARED     4       /* number of shared sbuf_t */
+#define BUFF_SIZE   5
+#define nLC         1
+#define nLA         3
+#define nMM         4
+#define nDM         5
+#define nEA         3
+#define nSHARED     4
 
 typedef struct {
     char nome[15];
@@ -23,12 +27,12 @@ typedef struct {
 } S;
 
 typedef struct {
-    S buffer[BUFF_SIZE];   /* shared var */
-    int in;         	  /* buffer[in%BUFF_SIZE] is the first empty slot */
-    int out;        	  /* buffer[out%BUFF_SIZE] is the first full slot */
-    sem_t full;     	  /* keep track of the number of full spots */
-    sem_t empty;    	  /* keep track of the number of empty spots */
-    sem_t mutex;    	  /* enforce mutual exclusion to shared data */
+    S buffer[BUFF_SIZE];
+    int in;
+    int out;
+    sem_t full;
+    sem_t empty;
+    sem_t mutex;
 } sbuf_t;
 
 sbuf_t shared[nSHARED];
@@ -53,8 +57,6 @@ void *LC(void *arg)
 		
 	}
 
-	sleep(2);
-
 	terminouLeitura = 1;
 
 	return NULL;
@@ -73,7 +75,6 @@ void *LA(void *arg)
 		sem_post(&shared[0].mutex);
         sem_post(&shared[0].empty);
 
-		// lendo arquivo e botando conteúdo em temp
 		char in_dir[50] = "in/";
 		strcat(in_dir, temp.nome);
 		strcat(in_dir, ".in");
@@ -100,7 +101,6 @@ void *LA(void *arg)
 				fscanf(arq, "%lf", &(temp.b[i][j]));
 			}
 		}
-		// fim da leitura do arquivo, temp está preenchido
 
 		sem_wait(&shared[1].empty);
 		sem_wait(&shared[1].mutex);
@@ -153,16 +153,7 @@ void *DM(void *arg)
 		sem_post(&shared[2].mutex);
         sem_post(&shared[2].empty);
 
-		// double*** r = &temp.c;
-		// int i,j, n = temp.size;
-		// printf("n = %d\n", n);
-		// for (i=0; i < n; i++)
-		// 	for (j=0; j < temp.size; j++)
-		// 		printf("r[%d][%d] = %lf\n", i, j, (*r)[i][j]);
-
 		determinante(temp.c, &(temp.det), temp.size);
-		
-		// printf("temp.det = %lf\n", temp.det);
 
 		sem_wait(&shared[3].empty);
 		sem_wait(&shared[3].mutex);
@@ -234,8 +225,6 @@ void *EA(void *arg)
 
 		sem_wait(&mutex);
 		sai++;
-		if(ent == sai && terminouLeitura)
-			exit(0);
 		sem_post(&mutex);
 	}
 }
@@ -243,7 +232,7 @@ void *EA(void *arg)
 int main()
 {
     pthread_t idLC, idLA, idMM, idDM, idEA;
-    int i;
+    int i, j;
     int sLC[nLC], sLA[nLA], sMM[nMM], sDM[nDM], sEA[nEA];
 
     for(i = 0; i<nSHARED; i++)
@@ -284,5 +273,8 @@ int main()
 		pthread_create(&idEA, NULL, EA, &sEA[i]);
     }
 
-	pthread_exit(NULL);
+	while(1)
+	{
+		if(ent == sai && terminouLeitura) exit(0);
+	}
 }

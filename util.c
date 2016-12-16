@@ -13,6 +13,7 @@ void alocar_matriz(double*** matriz, int n)
 void multiplicar(double **a, double **b, double **r, int n)
 {
 	int i,j,k;
+	#pragma omp parallel for num_threads(2)
 	for (i=0; i < n; i++)
 	{		
 		for (j=0; j < n; j++)
@@ -31,6 +32,7 @@ void determinante(double **c, double *det, int n)
 	double a[n][n];
 	int i, j, k, count=0;
 	double factor, temp;
+	#pragma omp parallel for num_threads(2)
 	for(i=0; i<n; i++) for(j=0; j<n; j++) a[i][j]=c[i][j];
 	for(i = 0; i < n - 1; i++)
     {
