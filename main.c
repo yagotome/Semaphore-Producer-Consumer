@@ -36,8 +36,8 @@ typedef struct {
 } sbuf_t;
 
 sbuf_t shared[nSHARED];
-int ent = 0, sai = 0, terminouLeitura=0;
-sem_t mutex;
+int ent = 0, sai = 0;
+sem_t mutex, sTerminouLeitura, sEntEqualsSai;
 
 void *LC(void *arg)
 {
@@ -57,7 +57,7 @@ void *LC(void *arg)
 		
 	}
 
-	terminouLeitura = 1;
+	sem_post(&sTerminouLeitura);
 
 	return NULL;
 }
@@ -225,6 +225,8 @@ void *EA(void *arg)
 
 		sem_wait(&mutex);
 		sai++;
+		if (ent == sai)
+		    sem_post(&sEntEqualsSai);
 		sem_post(&mutex);
 	}
 }
@@ -234,6 +236,9 @@ int main()
     pthread_t idLC, idLA, idMM, idDM, idEA;
     int i, j;
     int sLC[nLC], sLA[nLA], sMM[nMM], sDM[nDM], sEA[nEA];
+
+    sem_init(&sTerminouLeitura, 0, 1);
+    sem_init(&sEntEqualsSai, 0, 0);
 
     for(i = 0; i<nSHARED; i++)
     {
@@ -273,8 +278,8 @@ int main()
 		pthread_create(&idEA, NULL, EA, &sEA[i]);
     }
 
-	while(1)
-	{
-		if(ent == sai && terminouLeitura) exit(0);
-	}
+    sem_wait(&sTerminouLeitura);
+    while (ent != sai)
+    	sem_wait(&sEntEqualsSai);
+    exit(0);
 }
